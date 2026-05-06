@@ -37,7 +37,7 @@ export async function onRequest(context) {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Referer': 'https://lingzhiya.com/',
+        'Origin': 'https://lingzhiya.com',
       }
     });
     
