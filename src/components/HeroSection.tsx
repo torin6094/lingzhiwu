@@ -33,13 +33,22 @@ export function HeroSection() {
     const fetchWeather = async () => {
       try {
         // Open-Meteo API：上海经纬度 31.23, 121.47
+        // 包含天气和空气质量数据
         const apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=31.23&longitude=121.47&current_weather=true'
+        const aqiUrl = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=31.23&longitude=121.47&current=us_aqi'
         
-        const response = await fetch(apiUrl)
-        const data = await response.json()
-        if (data.current_weather) {
-          const temp = Math.round(data.current_weather.temperature)
-          const code = data.current_weather.weathercode
+        // 并行获取天气和空气质量
+        const [weatherRes, aqiRes] = await Promise.all([
+          fetch(apiUrl),
+          fetch(aqiUrl)
+        ])
+        
+        const weatherData = await weatherRes.json()
+        const aqiData = await aqiRes.json()
+        
+        if (weatherData.current_weather) {
+          const temp = Math.round(weatherData.current_weather.temperature)
+          const code = weatherData.current_weather.weathercode
           // WMO Weather interpretation codes
           const conditions: Record<number, string> = {
             0: '晴', 1: '多云', 2: '多云', 3: '阴',
@@ -50,11 +59,14 @@ export function HeroSection() {
             80: '阵雨', 81: '阵雨', 82: '暴雨',
             95: '雷雨', 96: '雷雨', 99: '雷雨'
           }
+          // 获取 AQI
+          const aqi = aqiData.current?.us_aqi || '--'
+          
           setWeather({
             temp: `${temp}°C`,
             condition: conditions[code] || '晴',
             city: '上海',
-            aqi: '--'
+            aqi: String(aqi)
           })
         }
       } catch (error) {
