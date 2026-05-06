@@ -92,7 +92,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Mail className="w-3 h-3" />
-                hello@lingzhiwu.com
+                jin6094@qq.com
               </li>
               <li className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Phone className="w-3 h-3" />
@@ -100,7 +100,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                中国 · 杭州
+                中国 · 上海
               </li>
             </ul>
             {/* Social Icons */}

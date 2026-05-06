@@ -25,7 +25,7 @@ export function ContactPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">邮箱</p>
-                    <p className="text-sm text-foreground">hello@lingzhiwu.com</p>
+                    <p className="text-sm text-foreground">jin6094@qq.com</p>
                   </div>
                 </div>
 
@@ -45,7 +45,7 @@ export function ContactPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">地址</p>
-                    <p className="text-sm text-foreground">中国 · 杭州</p>
+                    <p className="text-sm text-foreground">中国 · 上海</p>
                   </div>
                 </div>
               </div>
