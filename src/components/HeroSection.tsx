@@ -29,23 +29,33 @@ export function HeroSection() {
       year: '癸卯年 乙丑月 丁酋日'
     })
 
-    // 获取上海实时天气
+    // 获取上海实时天气（使用 Open-Meteo 免费 API，无需 Key）
     const fetchWeather = async () => {
       try {
-        // 前端直接调用和风天气 API（域名已在控制台授权）
-        const apiUrl = 'https://devapi.qweather.com/v7/weather/now?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4'
+        // Open-Meteo API：上海经纬度 31.23, 121.47
+        const apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=31.23&longitude=121.47&current_weather=true'
         
         const response = await fetch(apiUrl)
         const data = await response.json()
-        if (data.code === '200' || data.code === 200) {
+        if (data.current_weather) {
+          const temp = Math.round(data.current_weather.temperature)
+          const code = data.current_weather.weathercode
+          // WMO Weather interpretation codes
+          const conditions: Record<number, string> = {
+            0: '晴', 1: '多云', 2: '多云', 3: '阴',
+            45: '雾', 48: '雾凇',
+            51: '小雨', 53: '中雨', 55: '大雨',
+            61: '小雨', 63: '中雨', 65: '大雨',
+            71: '小雪', 73: '中雪', 75: '大雪',
+            80: '阵雨', 81: '阵雨', 82: '暴雨',
+            95: '雷雨', 96: '雷雨', 99: '雷雨'
+          }
           setWeather({
-            temp: `${data.now.temp}°C`,
-            condition: data.now.text,
+            temp: `${temp}°C`,
+            condition: conditions[code] || '晴',
             city: '上海',
             aqi: '--'
           })
-        } else {
-          console.error('天气API错误码:', data.code, data)
         }
       } catch (error) {
         console.error('获取天气失败:', error)
