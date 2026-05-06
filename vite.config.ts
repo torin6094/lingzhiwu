@@ -18,7 +18,7 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/weather-api/, ''),
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
             proxyReq.setHeader('Referer', 'https://lingzhiwu.com');
             proxyReq.setHeader('Origin', 'https://lingzhiwu.com');
           });
