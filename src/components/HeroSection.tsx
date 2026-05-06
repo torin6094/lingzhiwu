@@ -33,10 +33,8 @@ export function HeroSection() {
     const fetchWeather = async () => {
       try {
         // 开发环境使用 Vite 代理，生产环境使用 Cloudflare Worker
-        const isDev = import.meta.env.DEV
-        const apiUrl = isDev 
-          ? `/weather-api/v7/weather/now?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4`
-          : `/api/weather?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4`
+        // API Key 由后端从环境变量读取，前端不传
+        const apiUrl = '/api/weather?location=101020100'
         
         const response = await fetch(apiUrl)
         console.log('响应状态:', response.status, response.statusText)

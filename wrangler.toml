@@ -2,11 +2,11 @@
 name = "lingzhiwu"
 compatibility_date = "2024-01-01"
 
-# 环境变量（在 Cloudflare Dashboard 中设置）
-[env.production.vars]
-# WEATHER_API_KEY = "你的和风天气API密钥"
+# 静态网站部署配置
+[site]
+bucket = "./dist"
 
-# Functions 配置
-[[env.production.routes]]
-pattern = "api/*"
-custom_domain = true
+# ⚠️ 重要：天气 API Key 需要在 Cloudflare Dashboard 中设置
+# 路径：Pages → lingzhiwu → Settings → Environment variables
+# 变量名：WEATHER_API_KEY
+# 变量值：你的和风天气 API Key（如：6ad093ffa2624e139ea19a86e2e235a4）

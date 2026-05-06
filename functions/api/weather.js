@@ -12,7 +12,9 @@ export async function onRequest(context) {
   // 从 URL 获取参数
   const url = new URL(request.url);
   const location = url.searchParams.get('location') || '101020100'; // 默认上海
-  const key = url.searchParams.get('key') || env.WEATHER_API_KEY;
+  
+  // 从环境变量读取 API Key（在 Cloudflare Dashboard 中设置）
+  const key = env.WEATHER_API_KEY;
   
   if (!key) {
     return new Response(JSON.stringify({ 
