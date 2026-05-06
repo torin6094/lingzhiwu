@@ -32,14 +32,18 @@ export function HeroSection() {
     // 获取上海实时天气
     const fetchWeather = async () => {
       try {
-        const response = await fetch(
-          `/weather-api/v7/weather/now?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4`
-        )
+        // 开发环境使用 Vite 代理，生产环境使用 Cloudflare Worker
+        const isDev = import.meta.env.DEV
+        const apiUrl = isDev 
+          ? `/weather-api/v7/weather/now?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4`
+          : `/api/weather?location=101020100&key=6ad093ffa2624e139ea19a86e2e235a4`
+        
+        const response = await fetch(apiUrl)
         console.log('响应状态:', response.status, response.statusText)
         const text = await response.text()
         console.log('原始响应:', text)
         const data = JSON.parse(text)
-        if (data.code === '200') {
+        if (data.code === '200' || data.code === 200) {
           setWeather({
             temp: `${data.now.temp}°C`,
             condition: data.now.text,
