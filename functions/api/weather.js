@@ -30,8 +30,8 @@ export async function onRequest(context) {
   }
   
   try {
-    // 调用和风天气 API
-    const apiUrl = `https://devapi.qweather.com/v7/weather/now?location=${location}&key=${key}`;
+    // 调用和风天气 API（使用商业版端点，支持服务端调用）
+    const apiUrl = `https://api.qweather.com/v7/weather/now?location=${location}&key=${key}`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',
