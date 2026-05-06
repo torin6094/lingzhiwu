@@ -12,7 +12,9 @@ export function HeroSection() {
     temp: '--',
     condition: '晴',
     city: '上海',
-    aqi: '--'
+    aqi: '--',
+    aqiLevel: '--',
+    aqiColor: 'bg-gray-100 text-gray-600'
   })
 
   useEffect(() => {
@@ -59,14 +61,40 @@ export function HeroSection() {
             80: '阵雨', 81: '阵雨', 82: '暴雨',
             95: '雷雨', 96: '雷雨', 99: '雷雨'
           }
-          // 获取 AQI
-          const aqi = aqiData.current?.us_aqi || '--'
+          // 获取 AQI 并计算等级
+          const aqi = aqiData.current?.us_aqi
+          let aqiLevel = '--'
+          let aqiColor = 'bg-gray-100 text-gray-600'
+          
+          if (aqi !== undefined && aqi !== null) {
+            if (aqi <= 50) {
+              aqiLevel = '优'
+              aqiColor = 'bg-green-100 text-green-700'
+            } else if (aqi <= 100) {
+              aqiLevel = '良'
+              aqiColor = 'bg-yellow-100 text-yellow-700'
+            } else if (aqi <= 150) {
+              aqiLevel = '轻度污染'
+              aqiColor = 'bg-orange-100 text-orange-700'
+            } else if (aqi <= 200) {
+              aqiLevel = '中度污染'
+              aqiColor = 'bg-red-100 text-red-700'
+            } else if (aqi <= 300) {
+              aqiLevel = '重度污染'
+              aqiColor = 'bg-purple-100 text-purple-700'
+            } else {
+              aqiLevel = '严重污染'
+              aqiColor = 'bg-rose-900 text-white'
+            }
+          }
           
           setWeather({
             temp: `${temp}°C`,
             condition: conditions[code] || '晴',
             city: '上海',
-            aqi: String(aqi)
+            aqi: aqi !== undefined && aqi !== null ? String(aqi) : '--',
+            aqiLevel,
+            aqiColor
           })
         }
       } catch (error) {
@@ -142,7 +170,12 @@ export function HeroSection() {
             {/* City & AQI */}
             <div className="space-y-1">
               <p className="text-lg font-medium text-foreground">{weather.city}</p>
-              <p className="text-xs text-muted-foreground">空气质量 {weather.aqi}</p>
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${weather.aqiColor}`}>
+                  {weather.aqiLevel}
+                </span>
+                <span className="text-xs text-muted-foreground">AQI {weather.aqi}</span>
+              </div>
             </div>
           </div>
         </div>
