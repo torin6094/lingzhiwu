@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 泠之屋配色系统 - 暖米白东方美学 */
+    --background: 40 25% 96%; /* #F8F5F0 暖米白 */
+    --foreground: 30 10% 15%; /* 深灰文字 */
+    --card: 40 20% 98%; /* #FCFAF7 更浅的米白 */
+    --card-foreground: 30 10% 15%;
+    --popover: 40 20% 98%;
+    --popover-foreground: 30 10% 15%;
+    --primary: 25 35% 45%; /* #A67B5B 棕色/赭石 */
+    --primary-foreground: 40 25% 98%;
+    --secondary: 35 20% 92%; /* 浅米色 */
+    --secondary-foreground: 30 10% 20%;
+    --muted: 35 15% 90%;
+    --muted-foreground: 30 8% 45%; /* 次要文字 */
+    --accent: 25 30% 50%;
+    --accent-foreground: 40 25% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 15% 85%; /* 浅棕边框 */
+    --input: 35 15% 85%;
+    --ring: 25 35% 45%;
+    --radius: 0.75rem; /* 圆角 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Serif SC', 'Songti SC', serif;
+  }
+}
+
+@layer utilities {
+  /* 卡片样式 */
+  .card-shadow {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.02);
+  }
+  
+  /* 按钮样式 */
+  .btn-primary {
+    @apply bg-[#A67B5B] text-white px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300;
+  }
+  .btn-primary:hover {
+    @apply bg-[#8B6A4F];
+  }
+  
+  .btn-outline {
+    @apply border border-[#A67B5B] text-[#A67B5B] px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 bg-transparent;
+  }
+  .btn-outline:hover {
+    @apply bg-[#A67B5B] text-white;
+  }
+  
+  /* 导航链接 */
+  .nav-link {
+    @apply text-sm text-muted-foreground hover:text-foreground transition-colors duration-200;
+  }
+  .nav-link.active {
+    @apply text-foreground font-medium;
+  }
+  
+  /* 标签样式 */
+  .tag {
+    @apply px-4 py-1.5 rounded-full text-xs border border-border transition-all duration-200 cursor-pointer;
+  }
+  .tag.active {
+    @apply bg-[#A67B5B] text-white border-[#A67B5B];
+  }
+  .tag:hover:not(.active) {
+    @apply border-[#A67B5B] text-[#A67B5B];
+  }
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(166, 123, 91, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(166, 123, 91, 0.5);
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
