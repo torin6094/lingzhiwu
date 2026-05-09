@@ -118,7 +118,7 @@ export function HeroSection() {
         {/* Hero Main */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
           {/* Left Content */}
-          <div className="flex flex-col items-center justify-center space-y-6 h-full">
+          <div className="flex flex-col items-center justify-center h-full">
             <div className="bg-[#F5F0E8] p-4 rounded-2xl">
               <img
                 src="./images/logo-main.png"
@@ -126,9 +126,6 @@ export function HeroSection() {
                 className="h-48 lg:h-64 object-contain"
               />
             </div>
-            <button className="btn-primary">
-              探索更多
-            </button>
           </div>
 
           {/* Right Image */}

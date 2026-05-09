@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <circle cx="32" cy="32" r="30" fill="#F5F0E8"/>
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#A67B5B" stroke-width="1.5" opacity="0.4"/>
+  <text x="32" y="44" text-anchor="middle" font-family="'SimSun', 'Noto Serif SC', 'Songti SC', serif" font-size="36" font-weight="600" fill="#A67B5B">泠</text>
+</svg>

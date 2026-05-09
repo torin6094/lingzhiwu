@@ -41,14 +41,6 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
             ))}
           </div>
 
-          {/* Contact Button */}
-          <button
-            onClick={() => onNavigate('contact')}
-            className={`hidden md:block btn-primary ${currentPage === 'contact' ? 'bg-[#8B6A4F]' : ''}`}
-          >
-            联系我们
-          </button>
-
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2"
@@ -80,15 +72,6 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
                   {item.label}
                 </button>
               ))}
-              <button
-                onClick={() => {
-                  onNavigate('contact')
-                  setMobileMenuOpen(false)
-                }}
-                className="btn-primary text-center mt-2"
-              >
-                联系我们
-              </button>
             </div>
           </div>
         )}
