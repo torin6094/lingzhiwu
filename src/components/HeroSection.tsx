@@ -143,38 +143,42 @@ export function HeroSection() {
 
         {/* Date & Weather Card */}
         <div className="bg-white rounded-2xl card-shadow p-6 max-w-3xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-start">
             {/* Date */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">今日日期</p>
-              <p className="text-lg font-medium text-foreground">{currentDate.date}</p>
+              <p className="text-base font-medium text-foreground">{currentDate.date}</p>
               <p className="text-xs text-muted-foreground">{currentDate.weekday}</p>
             </div>
 
             {/* Lunar */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">农历</p>
-              <p className="text-lg font-medium text-foreground">{currentDate.lunar}</p>
+              <p className="text-base font-medium text-foreground">{currentDate.lunar}</p>
               <p className="text-xs text-muted-foreground">{currentDate.year}</p>
             </div>
 
             {/* Weather */}
-            <div className="flex items-center gap-3">
-              {getWeatherIcon()}
-              <div>
-                <p className="text-2xl font-medium text-foreground">{weather.temp}</p>
-                <p className="text-xs text-muted-foreground">{weather.condition}</p>
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">天气</p>
+              <div className="flex items-center gap-2">
+                {getWeatherIcon()}
+                <div>
+                  <p className="text-base font-medium text-foreground">{weather.temp}</p>
+                  <p className="text-xs text-muted-foreground">{weather.condition}</p>
+                </div>
               </div>
             </div>
 
             {/* City & AQI */}
-            <div className="space-y-1">
-              <p className="text-lg font-medium text-foreground">{weather.city}</p>
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">城市 · 空气</p>
+              <p className="text-base font-medium text-foreground">{weather.city}</p>
               <div className="flex items-center gap-1.5">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${weather.aqiColor}`}>
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${weather.aqiColor}`}>
                   {weather.aqiLevel}
                 </span>
-                <span className="text-xs text-muted-foreground">AQI {weather.aqi}</span>
+                <span className="text-xs text-muted-foreground">{weather.aqi}</span>
               </div>
             </div>
           </div>
