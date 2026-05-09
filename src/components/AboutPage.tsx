@@ -1,4 +1,4 @@
-import { Sparkles, Heart, Leaf } from 'lucide-react'
+import { Sparkles, Heart, Lightbulb, Leaf } from 'lucide-react'
 
 const philosophies = [
   {
