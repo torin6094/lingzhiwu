@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 
+// 将简书图片URL转换为代理URL，绕过防盗链
+const proxyImage = (url: string): string => {
+  if (!url) return './images/articles/default.jpg'
+  if (url.includes('jianshu.io') || url.includes('jianshu.com')) {
+    return `/api/proxy-image?url=${encodeURIComponent(url)}`
+  }
+  return url
+}
+
 interface Article {
   id: string
   title: string
@@ -133,11 +142,11 @@ export function ArticlesPage() {
               >
                 <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                   <img
-                    src={article.image || './images/articles/default.jpg'}
+                    src={proxyImage(article.image)}
                     alt={article.title}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                     onError={(e) => {
-                      // 图片加载失败时使用默认图片
                       (e.target as HTMLImageElement).src = './images/articles/default.jpg'
                     }}
                   />
@@ -167,7 +176,7 @@ export function ArticlesPage() {
             {/* Article Header Image */}
             <div className="relative">
               <img
-                src={selectedArticle.image || './images/articles/default.jpg'}
+                src={proxyImage(selectedArticle.image)}
                 alt={selectedArticle.title}
                 className="w-full h-64 object-cover rounded-t-2xl"
                 onError={(e) => {
