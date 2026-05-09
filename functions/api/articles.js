@@ -1,37 +1,17 @@
-// 抓取简书文章列表
+// 抓取简书文章列表 - 使用简书内部API
 // 路由: /api/articles
+
+const JIANSHU_USER_ID = '9aa9f349f3fb'
 
 export async function onRequest(context) {
   const { request } = context
-  
-  // 只允许 GET 请求
+
   if (request.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 })
   }
 
   try {
-    // 抓取简书用户主页
-    const jianshuUrl = 'https://www.jianshu.com/u/9aa9f349f3fb'
-    
-    const response = await fetch(jianshuUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-        'Referer': 'https://www.jianshu.com/'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.status}`)
-    }
-
-    const html = await response.text()
-    
-    // 解析文章列表
-    const articles = parseArticles(html)
-    
-    // 只返回最新10条
+    const articles = await fetchJianshuArticles()
     const latestArticles = articles.slice(0, 10)
 
     return new Response(JSON.stringify({
@@ -44,16 +24,15 @@ export async function onRequest(context) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=3600' // 缓存1小时
+        'Cache-Control': 'public, max-age=3600'
       }
     })
-
   } catch (error) {
     console.error('Error fetching articles:', error)
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
-      data: [] // 返回空数组，前端可以显示占位内容
+      data: []
     }), {
       status: 500,
       headers: {
@@ -64,120 +43,189 @@ export async function onRequest(context) {
   }
 }
 
-// 解析 HTML 中的文章列表
-function parseArticles(html) {
+async function fetchJianshuArticles() {
   const articles = []
-  
-  // 简书文章列表通常在 <div class="note-list"> 中
-  // 每篇文章的结构:
-  // <li class="have-img">
-  //   <a class="wrap-img" href="/p/xxxxx"><img src="..."></a>
-  //   <div class="content">
-  //     <a class="title" href="/p/xxxxx">标题</a>
-  //     <p class="abstract">摘要...</p>
-  //     <div class="meta">
-  //       <span class="time">2024.01.15</span>
-  //     </div>
-  //   </div>
-  // </li>
-  
-  // 使用正则匹配文章列表
-  const noteListMatch = html.match(/<ul class="note-list"[^>]*>([\s\S]*?)<\/ul>/)
-  
-  if (!noteListMatch) {
-    // 尝试其他可能的结构
-    return parseAlternativeStructure(html)
+
+  // 方案1: 尝试简书用户文章列表 API
+  try {
+    const apiArticles = await fetchFromApi()
+    if (apiArticles.length > 0) return apiArticles
+  } catch (e) {
+    console.error('API fetch failed:', e)
   }
-  
-  const noteListHtml = noteListMatch[1]
-  const articleMatches = noteListHtml.match(/<li[^>]*class="[^"]*have-img[^"]*"[^>]*>[\s\S]*?<\/li>/g) || 
-                         noteListHtml.match(/<li[^>]*>[\s\S]*?<\/li>/g)
-  
-  if (!articleMatches) {
-    return parseAlternativeStructure(html)
+
+  // 方案2: 备用 - 从用户主页HTML解析
+  try {
+    const htmlArticles = await fetchFromHtml()
+    if (htmlArticles.length > 0) return htmlArticles
+  } catch (e) {
+    console.error('HTML fetch failed:', e)
   }
-  
-  for (const articleHtml of articleMatches.slice(0, 10)) {
-    const article = parseArticleItem(articleHtml)
-    if (article) {
-      articles.push(article)
-    }
-  }
-  
+
   return articles
 }
 
-// 解析单篇文章
-function parseArticleItem(html) {
-  // 提取标题
-  const titleMatch = html.match(/<a[^>]*class="title"[^>]*>([\s\S]*?)<\/a>/)
-  const title = titleMatch ? cleanHtml(titleMatch[1]) : ''
-  
-  // 提取链接
-  const linkMatch = html.match(/<a[^>]*class="title"[^>]*href="([^"]+)"/)
-  const link = linkMatch ? `https://www.jianshu.com${linkMatch[1]}` : ''
-  
-  // 提取摘要
-  const abstractMatch = html.match(/<p[^>]*class="abstract"[^>]*>([\s\S]*?)<\/p>/)
-  const abstract = abstractMatch ? cleanHtml(abstractMatch[1]) : ''
-  
-  // 提取图片
-  const imgMatch = html.match(/<img[^>]*src="([^"]+)"[^>]*>/)
-  let image = imgMatch ? imgMatch[1] : ''
-  // 处理图片 URL
-  if (image && !image.startsWith('http')) {
-    image = `https:${image}`
-  }
-  
-  // 提取日期
-  const timeMatch = html.match(/<span[^>]*class="time"[^>]*>([\s\S]*?)<\/span>/)
-  const date = timeMatch ? cleanHtml(timeMatch[1]) : ''
-  
-  if (title && link) {
-    return {
-      id: link.split('/').pop() || String(Date.now()),
-      title,
-      content: abstract, // 摘要作为内容预览
-      image,
-      date,
-      link // 简书原文链接
-    }
-  }
-  
-  return null
-}
+// 方案1: 简书内部 API
+async function fetchFromApi() {
+  const urls = [
+    `https://www.jianshu.com/api/users/${JIANSHU_USER_ID}/notes?page=1&per_page=10&order=newest`,
+    `https://www.jianshu.com/asimov/api/users/${JIANSHU_USER_ID}/notes?page=1&per_page=10&order=newest`,
+  ]
 
-// 备用解析方案 - 尝试从页面脚本中提取
-function parseAlternativeStructure(html) {
-  const articles = []
-  
-  // 尝试从 window.__INITIAL_STATE__ 中提取
-  const stateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]*?});/)
-  
-  if (stateMatch) {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    'Referer': 'https://www.jianshu.com/',
+    'Origin': 'https://www.jianshu.com',
+    'X-Requested-With': 'XMLHttpRequest'
+  }
+
+  for (const url of urls) {
     try {
-      const state = JSON.parse(stateMatch[1])
-      const notes = state.notes?.list || state.user?.notes || []
-      
-      for (const note of notes.slice(0, 10)) {
-        articles.push({
-          id: String(note.id || note.slug),
-          title: note.title || '',
-          content: note.content || note.abstract || '',
-          image: note.first_image || note.cover_image || '',
-          date: formatDate(note.first_shared_at || note.published_at),
-          link: `https://www.jianshu.com/p/${note.slug || note.id}`
-        })
+      const response = await fetch(url, { headers })
+      if (response.ok) {
+        const data = await response.json()
+        if (data && Array.isArray(data)) {
+          return data.map(note => ({
+            id: String(note.slug || note.id),
+            title: note.title || '',
+            content: note.description || note.abstract || note.content || '',
+            image: note.first_image_url || note.cover_image_url || note.image_url || note.list_image_url || '',
+            date: formatDate(note.first_shared_at || note.created_at),
+            link: `https://www.jianshu.com/p/${note.slug || note.id}`
+          }))
+        }
       }
     } catch (e) {
-      console.error('Failed to parse initial state:', e)
+      // 继续尝试下一个URL
     }
   }
-  
+
+  return []
+}
+
+// 方案2: 从 HTML 页面解析
+async function fetchFromHtml() {
+  const response = await fetch(`https://www.jianshu.com/u/${JIANSHU_USER_ID}`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'Referer': 'https://www.jianshu.com/'
+    }
+  })
+
+  if (!response.ok) throw new Error(`HTML fetch failed: ${response.status}`)
+
+  const html = await response.text()
+
+  // 尝试从 window.__INITIAL_STATE__ 提取
+  const stateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\})\s*<\/script>/)
+
+  if (stateMatch) {
+    try {
+      // 简书的 __INITIAL_STATE__ 末尾可能有不完整的JSON
+      let stateStr = stateMatch[1]
+      // 修复常见的JSON截断问题
+      const lastBrace = stateStr.lastIndexOf('}')
+      if (lastBrace > -1) {
+        stateStr = stateStr.substring(0, lastBrace + 1)
+      }
+
+      const state = JSON.parse(stateStr)
+
+      // 尝试多种路径找到文章列表
+      let notes = []
+      if (state.user?.notes) {
+        notes = state.user.notes
+      } else if (state.entities?.notes) {
+        notes = Object.values(state.entities.notes)
+      } else if (state.notes) {
+        notes = Array.isArray(state.notes) ? state.notes : (state.notes.list || [])
+      } else if (state.entities?.users?.[JIANSHU_USER_ID]?.notes) {
+        notes = state.entities.users[JIANSHU_USER_ID].notes
+      }
+
+      if (Array.isArray(notes) && notes.length > 0) {
+        return notes.slice(0, 10).map(note => ({
+          id: String(note.slug || note.id),
+          title: note.title || note.screen_title || '',
+          content: note.description || note.abstract || note.content || '',
+          image: note.first_image_url || note.cover_image_url || note.image_url || note.list_image_url || '',
+          date: formatDate(note.first_shared_at || note.created_at),
+          link: `https://www.jianshu.com/p/${note.slug || note.id}`
+        }))
+      }
+    } catch (e) {
+      console.error('Failed to parse INITIAL_STATE:', e.message)
+    }
+  }
+
+  // 备用: 从 HTML 正则解析
+  return parseHtmlArticles(html)
+}
+
+// 从 HTML 正则解析文章
+function parseHtmlArticles(html) {
+  const articles = []
+
+  // 匹配文章列表中的每一项
+  const noteListMatch = html.match(/<ul class="note-list"[^>]*>([\s\S]*?)<\/ul>/)
+  if (!noteListMatch) return articles
+
+  const noteListHtml = noteListMatch[1]
+  const items = noteListHtml.match(/<li[^>]*>[\s\S]*?<\/li>/g) || []
+
+  for (const item of items.slice(0, 10)) {
+    const titleMatch = item.match(/<a[^>]*class="title"[^>]*>([\s\S]*?)<\/a>/)
+    const linkMatch = item.match(/<a[^>]*class="title"[^>]*href="([^"]+)"/)
+    const abstractMatch = item.match(/<p[^>]*class="abstract"[^>]*>([\s\S]*?)<\/p>/)
+    const timeMatch = item.match(/<span[^>]*class="time"[^>]*data-shared-at="([^"]+)"/) ||
+                      item.match(/<span[^>]*class="time"[^>]*>([\s\S]*?)<\/span>/)
+
+    // 尝试多种方式提取图片
+    let image = ''
+    const imgMatch = item.match(/<img[^>]*src="([^"]+)"[^>]*>/) ||
+                     item.match(/<img[^>]*data-src="([^"]+)"[^>]*>/) ||
+                     item.match(/<img[^>]*data-original-src="([^"]+)"[^>]*>/)
+    if (imgMatch) {
+      image = imgMatch[1]
+      if (image && !image.startsWith('http')) {
+        image = `https:${image}`
+      }
+    }
+
+    // 尝试从 background-image 提取
+    if (!image) {
+      const bgMatch = item.match(/background-image:\s*url\(['"]?([^'")\s]+)['"]?\)/)
+      if (bgMatch) {
+        image = bgMatch[1]
+        if (image && !image.startsWith('http')) {
+          image = `https:${image}`
+        }
+      }
+    }
+
+    const title = titleMatch ? cleanHtml(titleMatch[1]) : ''
+    const link = linkMatch ? `https://www.jianshu.com${linkMatch[1]}` : ''
+
+    if (title && link) {
+      const slug = link.split('/').pop() || ''
+      articles.push({
+        id: slug,
+        title,
+        content: abstractMatch ? cleanHtml(abstractMatch[1]) : '',
+        image,
+        slug, // 保留 slug 用于前端生成封面
+        date: timeMatch ? (timeMatch[1].match(/^\d/) ? formatDate(Number(timeMatch[1])) : cleanHtml(timeMatch[1])) : ''
+      })
+    }
+  }
+
   return articles
 }
 
-// 清理 HTML 标签
 function cleanHtml(str) {
   return str
     .replace(/<[^>]+>/g, '')
@@ -189,16 +237,12 @@ function cleanHtml(str) {
     .trim()
 }
 
-// 格式化日期
-function formatDate(timestamp) {
-  if (!timestamp) return ''
-  
-  const date = new Date(timestamp)
-  if (isNaN(date.getTime())) return timestamp
-  
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  
-  return `${year}.${month}.${day}`
+function formatDate(input) {
+  if (!input) return ''
+  const date = new Date(input)
+  if (isNaN(date.getTime())) return String(input)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}.${m}.${d}`
 }
