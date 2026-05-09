@@ -3,6 +3,7 @@ import './App.css'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
 import { HeroSection } from '@/components/HeroSection'
+import { FeaturesSection } from '@/components/FeaturesSection'
 import { PortfolioPage } from '@/components/PortfolioPage'
 import { ArticlesPage } from '@/components/ArticlesPage'
 import { AboutPage } from '@/components/AboutPage'
@@ -13,6 +14,7 @@ function HomePage() {
   return (
     <>
       <HeroSection />
+      <FeaturesSection />
     </>
   )
 }

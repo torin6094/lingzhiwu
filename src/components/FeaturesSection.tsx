@@ -25,23 +25,8 @@ export function FeaturesSection() {
   ]
 
   return (
-    <section className="py-16 px-6 lg:px-8">
+    <section className="py-12 px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Brand Intro */}
-        <div className="text-center mb-16">
-          <h2 className="text-2xl font-serif font-medium text-foreground mb-4">
-            泠之屋
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
-            中国文创设计工作室，专注于东方美学与现代设计的融合，<br />
-            用创意传递文化温度，打造有灵魂的作品。
-          </p>
-          <button className="btn-outline">
-            了解我们
-          </button>
-        </div>
-
-        {/* Features */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="text-center space-y-3">
