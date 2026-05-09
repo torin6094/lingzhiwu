@@ -44,8 +44,6 @@ export async function onRequest(context) {
 }
 
 async function fetchJianshuArticles() {
-  const articles = []
-
   // 方案1: 尝试简书用户文章列表 API
   try {
     const apiArticles = await fetchFromApi()
@@ -54,7 +52,7 @@ async function fetchJianshuArticles() {
     console.error('API fetch failed:', e)
   }
 
-  // 方案2: 备用 - 从用户主页HTML解析
+  // 方案2: 从用户主页HTML解析
   try {
     const htmlArticles = await fetchFromHtml()
     if (htmlArticles.length > 0) return htmlArticles
@@ -62,7 +60,43 @@ async function fetchJianshuArticles() {
     console.error('HTML fetch failed:', e)
   }
 
-  return articles
+  return []
+}
+
+// 确保每篇文章都有完整的字段
+function normalizeArticle(note) {
+  const id = String(note.slug || note.id || '')
+  const link = `https://www.jianshu.com/p/${id}`
+  return {
+    id,
+    title: note.title || note.screen_title || '',
+    content: note.description || note.abstract || note.content || '',
+    image: note.first_image_url || note.cover_image_url || note.image_url || note.list_image_url || '',
+    date: formatNoteDate(note),
+    link
+  }
+}
+
+// 智能提取日期
+function formatNoteDate(note) {
+  const timestamp = note.first_shared_at || note.created_at || note.published_at || 
+                    note.first_shared_time || note.share_time || note.mounted_at
+  if (timestamp) {
+    return formatDate(timestamp)
+  }
+  // 如果字段名不确定，尝试遍历常见时间字段
+  for (const key of Object.keys(note)) {
+    if (key.includes('time') || key.includes('date') || key.includes('at')) {
+      const val = note[key]
+      if (typeof val === 'number' && val > 1000000000) {
+        return formatDate(val)
+      }
+      if (typeof val === 'string' && val.match(/^\d{4}/)) {
+        return val
+      }
+    }
+  }
+  return ''
 }
 
 // 方案1: 简书内部 API
@@ -87,14 +121,7 @@ async function fetchFromApi() {
       if (response.ok) {
         const data = await response.json()
         if (data && Array.isArray(data)) {
-          return data.map(note => ({
-            id: String(note.slug || note.id),
-            title: note.title || '',
-            content: note.description || note.abstract || note.content || '',
-            image: note.first_image_url || note.cover_image_url || note.image_url || note.list_image_url || '',
-            date: formatDate(note.first_shared_at || note.created_at),
-            link: `https://www.jianshu.com/p/${note.slug || note.id}`
-          }))
+          return data.map(normalizeArticle)
         }
       }
     } catch (e) {
@@ -125,9 +152,7 @@ async function fetchFromHtml() {
 
   if (stateMatch) {
     try {
-      // 简书的 __INITIAL_STATE__ 末尾可能有不完整的JSON
       let stateStr = stateMatch[1]
-      // 修复常见的JSON截断问题
       const lastBrace = stateStr.lastIndexOf('}')
       if (lastBrace > -1) {
         stateStr = stateStr.substring(0, lastBrace + 1)
@@ -148,14 +173,7 @@ async function fetchFromHtml() {
       }
 
       if (Array.isArray(notes) && notes.length > 0) {
-        return notes.slice(0, 10).map(note => ({
-          id: String(note.slug || note.id),
-          title: note.title || note.screen_title || '',
-          content: note.description || note.abstract || note.content || '',
-          image: note.first_image_url || note.cover_image_url || note.image_url || note.list_image_url || '',
-          date: formatDate(note.first_shared_at || note.created_at),
-          link: `https://www.jianshu.com/p/${note.slug || note.id}`
-        }))
+        return notes.slice(0, 10).map(normalizeArticle)
       }
     } catch (e) {
       console.error('Failed to parse INITIAL_STATE:', e.message)
@@ -170,7 +188,6 @@ async function fetchFromHtml() {
 function parseHtmlArticles(html) {
   const articles = []
 
-  // 匹配文章列表中的每一项
   const noteListMatch = html.match(/<ul class="note-list"[^>]*>([\s\S]*?)<\/ul>/)
   if (!noteListMatch) return articles
 
@@ -196,7 +213,6 @@ function parseHtmlArticles(html) {
       }
     }
 
-    // 尝试从 background-image 提取
     if (!image) {
       const bgMatch = item.match(/background-image:\s*url\(['"]?([^'")\s]+)['"]?\)/)
       if (bgMatch) {
@@ -212,13 +228,19 @@ function parseHtmlArticles(html) {
 
     if (title && link) {
       const slug = link.split('/').pop() || ''
+      let date = ''
+      if (timeMatch) {
+        const raw = timeMatch[1]
+        date = raw.match(/^\d/) ? formatDate(Number(raw)) : cleanHtml(raw)
+      }
+
       articles.push({
         id: slug,
         title,
         content: abstractMatch ? cleanHtml(abstractMatch[1]) : '',
         image,
-        slug, // 保留 slug 用于前端生成封面
-        date: timeMatch ? (timeMatch[1].match(/^\d/) ? formatDate(Number(timeMatch[1])) : cleanHtml(timeMatch[1])) : ''
+        date,
+        link
       })
     }
   }
