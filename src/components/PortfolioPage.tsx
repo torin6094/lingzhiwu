@@ -4,32 +4,32 @@ const works = [
   {
     id: 1,
     title: '丰子恺的画',
-    image: './images/portfolio/丰子恺的画.jpg'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470017/portfolio/%E4%B8%B0%E5%AD%90%E6%81%BA%E7%9A%84%E7%94%BB.jpg'
   },
   {
     id: 2,
     title: '泠之屋炫彩LOGO',
-    image: './images/portfolio/泠之屋炫彩LOGO.png'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470020/portfolio/%E6%B3%A0%E4%B9%8B%E5%B1%8B%E7%82%AB%E5%BD%A9LOGO.png'
   },
   {
     id: 3,
     title: '猫大侠海报',
-    image: './images/portfolio/猫大侠海报.png'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470022/portfolio/%E7%8C%AB%E5%A4%A7%E4%BE%A0%E6%B5%B7%E6%8A%A5.png'
   },
   {
     id: 4,
     title: '毛子大侠东方版',
-    image: './images/portfolio/毛子大侠东方版.png'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470018/portfolio/%E6%AF%9B%E5%AD%90%E5%A4%A7%E4%BE%A0%E4%B8%9C%E6%96%B9%E7%89%88.png'
   },
   {
     id: 5,
     title: '涂鸦派大星',
-    image: './images/portfolio/涂鸦派大星.jpg'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470020/portfolio/%E6%B6%82%E9%B8%A6%E6%B4%BE%E5%A4%A7%E6%98%9F.jpg'
   },
   {
     id: 6,
     title: '中国风俩臭猫',
-    image: './images/portfolio/中国风俩臭猫.png'
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470001/portfolio/%E4%B8%AD%E5%9B%BD%E9%A3%8E%E4%BF%A9%E8%87%AD%E7%8C%AB.png'
   }
 ]
 
