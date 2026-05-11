@@ -30,6 +30,11 @@ const works = [
     id: 6,
     title: '中国风俩臭猫',
     image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470001/portfolio/%E4%B8%AD%E5%9B%BD%E9%A3%8E%E4%BF%A9%E8%87%AD%E7%8C%AB.png'
+  },
+  {
+    id: 7,
+    title: '阳台上的两只猫',
+    image: 'https://res.cloudinary.com/duejkhf4j/image/upload/v1778470387/%E9%98%B3%E5%8F%B0%E4%B8%8A%E7%9A%84%E4%B8%A4%E5%8F%AA%E7%8C%AB.jpg'
   }
 ]
 
