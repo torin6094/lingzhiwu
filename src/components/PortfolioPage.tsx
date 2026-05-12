@@ -10,26 +10,20 @@ interface CloudinaryImage {
 const CLOUDINARY_CLOUD_NAME = 'duejkhf4j'
 const CLOUDINARY_FOLDER = 'portfolio'
 
-// 从 Cloudinary 获取图片列表
+// Worker API 地址
+const WORKER_API_URL = 'https://lingzhiwu-api.jinchunji.workers.dev'
+
+// 从 Worker 获取图片列表
 async function fetchCloudinaryImages(): Promise<CloudinaryImage[]> {
   try {
-    // 使用 Cloudinary 的客户端 API 获取资源列表
-    // 注意：生产环境建议使用服务端 API 或预签名 URL
-    const response = await fetch(
-      `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/${CLOUDINARY_FOLDER}.json`
-    )
+    const response = await fetch(WORKER_API_URL)
     
     if (!response.ok) {
       throw new Error('Failed to fetch images')
     }
     
     const data = await response.json()
-    
-    return data.resources.map((resource: any, index: number) => ({
-      id: String(index + 1),
-      title: decodeURIComponent(resource.public_id.split('/').pop() || '未命名'),
-      image: `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${resource.public_id}.${resource.format}`
-    }))
+    return data
   } catch (error) {
     console.error('获取图片失败:', error)
     return []
