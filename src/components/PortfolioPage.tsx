@@ -6,10 +6,6 @@ interface CloudinaryImage {
   image: string
 }
 
-// Cloudinary 配置
-const CLOUDINARY_CLOUD_NAME = 'duejkhf4j'
-const CLOUDINARY_FOLDER = 'portfolio'
-
 // Worker API 地址
 const WORKER_API_URL = 'https://lingzhiwu-api.jinchunji.workers.dev'
 
