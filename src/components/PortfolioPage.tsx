@@ -16,13 +16,25 @@ const WORKER_API_URL = 'https://lingzhiwu-api.jinchunji.workers.dev'
 // 从 Worker 获取图片列表
 async function fetchCloudinaryImages(): Promise<CloudinaryImage[]> {
   try {
-    const response = await fetch(WORKER_API_URL)
+    const response = await fetch(WORKER_API_URL, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
     
     if (!response.ok) {
-      throw new Error('Failed to fetch images')
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
     
     const data = await response.json()
+    
+    // 检查返回数据格式
+    if (!Array.isArray(data)) {
+      console.error('API 返回格式错误:', data)
+      return []
+    }
+    
     return data
   } catch (error) {
     console.error('获取图片失败:', error)
