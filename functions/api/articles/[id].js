@@ -95,17 +95,18 @@ async function fetchJianshuArticle(id) {
 
   const articleHtml = articleMatch[1]
 
-  // 提取所有段落文本，智能识别标题
+  // 提取所有段落和标题文本
   const items = []
-  const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/g
+  // 匹配 h1-h4 标题标签 和 p 段落标签
+  const blockRegex = /<(h[1-4]|p)[^>]*>([\s\S]*?)<\/\1>/g
   let match
-  while ((match = pRegex.exec(articleHtml)) !== null) {
-    const raw = match[1]
-    // 检查是否包含 strong/b 标签（简书作者偶尔用）
-    const hasBold = /<(strong|b)[^>]*>/i.test(raw)
+  while ((match = blockRegex.exec(articleHtml)) !== null) {
+    const tag = match[1]
+    const raw = match[2]
     const text = cleanHtml(raw)
     if (text.length > 0) {
-      const type = detectType(text, hasBold)
+      // h1-h4 标签 → 直接标记为标题
+      const type = tag.startsWith('h') ? 'heading' : detectType(text)
       items.push({ type, text })
     }
   }
@@ -122,20 +123,19 @@ async function fetchJianshuArticle(id) {
   }
 }
 
-// 智能检测段落类型
-function detectType(text, hasBold) {
-  // 规则1: 原文有 bold 标记 → 标题
-  if (hasBold) return 'heading'
+// 智能检测段落类型（仅用于 <p> 标签，<h1>-<h4> 已直接标记为 heading）
+function detectType(text) {
+  // 规则1: 查看是否有 strong/b 标签（原文粗体）
+  // 已在主循环中通过标签名直接判断，这里只处理 p 标签
 
-  // 规则2: 短段落（≤18字符）且不以常规标点结尾 → 标题
+  // 规则2: 短段落（≤12字符）且不以对话引导符开头 → 标题
   const sentenceEndings = /[。！？…，、》」』）\)]$/
-  if (text.length <= 18 && !sentenceEndings.test(text)) {
-    // 排除一些误判：纯引用语、纯对话
-    if (/^[""''「『]/.test(text)) return 'text'
+  if (text.length <= 12 && !sentenceEndings.test(text)) {
+    if (/^[\"\"''「『]/.test(text)) return 'text'
     return 'heading'
   }
 
-  // 规则3: 以特殊格式开头（如"XX曰："、"史书记载："）
+  // 规则3: 超短"XX曰/XX：/XX："格式 → 标题
   if (/^.{1,6}[：:]\s*$/.test(text) && text.length <= 12) {
     return 'heading'
   }
