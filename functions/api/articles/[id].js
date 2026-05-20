@@ -141,6 +141,8 @@ function detectType(text) {
   const sentenceEndings = /[。！？…，、》」』）\)]$/
   if (text.length <= 12 && !sentenceEndings.test(text)) {
     if (/^[\"\"''「『]/.test(text)) return 'text'
+    // 排除纯疑问句（如"要不要除掉无忌？"）
+    if (/^.{1,10}[？?]$/.test(text)) return 'text'
     return 'heading'
   }
 
