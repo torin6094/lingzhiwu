@@ -95,18 +95,27 @@ async function fetchJianshuArticle(id) {
 
   const articleHtml = articleMatch[1]
 
-  // 提取所有段落和标题文本
+  // 提取所有段落和标题文本（按原文顺序）
   const items = []
-  // 匹配 h1-h4 标题标签 和 p 段落标签
-  const blockRegex = /<(h[1-4]|p)[^>]*>([\s\S]*?)<\/\1>/g
-  let match
-  while ((match = blockRegex.exec(articleHtml)) !== null) {
-    const tag = match[1]
-    const raw = match[2]
-    const text = cleanHtml(raw)
+  
+  // 提取标题标签 h1-h4 → 合并为一个正则，用 | 分隔
+  // [^] 匹配任意字符含换行，避免 template literal 中 \\s 转义陷阱
+  const headingRegex = /<h[1-4][^>]*>([^]*?)<\/h[1-4]>/gi
+  let m
+  while ((m = headingRegex.exec(articleHtml)) !== null) {
+    const text = cleanHtml(m[1])
     if (text.length > 0) {
-      // h1-h4 标签 → 直接标记为标题
-      const type = tag.startsWith('h') ? 'heading' : detectType(text)
+      items.push({ type: 'heading', text })
+    }
+  }
+
+  // 提取段落标签 p
+  const pRegex = /<p[^>]*>([^]*?)<\/p>/gi
+  let m2
+  while ((m2 = pRegex.exec(articleHtml)) !== null) {
+    const text = cleanHtml(m2[1])
+    if (text.length > 0) {
+      const type = detectType(text)
       items.push({ type, text })
     }
   }
