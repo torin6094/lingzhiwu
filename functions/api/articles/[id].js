@@ -95,23 +95,52 @@ async function fetchJianshuArticle(id) {
 
   const articleHtml = articleMatch[1]
 
-  // 提取所有段落文本
-  const paragraphs = []
+  // 提取所有段落文本，智能识别标题
+  const items = []
   const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/g
   let match
   while ((match = pRegex.exec(articleHtml)) !== null) {
-    const text = cleanHtml(match[1])
+    const raw = match[1]
+    // 检查是否包含 strong/b 标签（简书作者偶尔用）
+    const hasBold = /<(strong|b)[^>]*>/i.test(raw)
+    const text = cleanHtml(raw)
     if (text.length > 0) {
-      paragraphs.push(text)
+      const type = detectType(text, hasBold)
+      items.push({ type, text })
     }
   }
+
+  // 提取纯文本段落（兼容旧格式）
+  const paragraphs = items.map(i => i.text)
 
   return {
     id,
     title: title || '',
     content: paragraphs.join('\n\n'),
-    paragraphs
+    paragraphs,
+    items  // 新增：带类型的结构化数据
   }
+}
+
+// 智能检测段落类型
+function detectType(text, hasBold) {
+  // 规则1: 原文有 bold 标记 → 标题
+  if (hasBold) return 'heading'
+
+  // 规则2: 短段落（≤18字符）且不以常规标点结尾 → 标题
+  const sentenceEndings = /[。！？…，、》」』）\)]$/
+  if (text.length <= 18 && !sentenceEndings.test(text)) {
+    // 排除一些误判：纯引用语、纯对话
+    if (/^[""''「『]/.test(text)) return 'text'
+    return 'heading'
+  }
+
+  // 规则3: 以特殊格式开头（如"XX曰："、"史书记载："）
+  if (/^.{1,6}[：:]\s*$/.test(text) && text.length <= 12) {
+    return 'heading'
+  }
+
+  return 'text'
 }
 
 function cleanHtml(str) {
