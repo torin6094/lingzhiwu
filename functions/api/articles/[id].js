@@ -108,7 +108,7 @@ async function fetchJianshuArticle(id) {
     const raw = block[2]
     const text = cleanHtml(raw)
     if (text.length > 0) {
-      const type = tag.startsWith('h') ? 'heading' : detectType(text)
+      const type = tag.startsWith('h') ? 'heading' : 'text'
       items.push({ type, text })
     }
   }
@@ -123,28 +123,6 @@ async function fetchJianshuArticle(id) {
     paragraphs,
     items  // 新增：带类型的结构化数据
   }
-}
-
-// 智能检测段落类型（仅用于 <p> 标签，<h1>-<h4> 已直接标记为 heading）
-function detectType(text) {
-  // 规则1: 查看是否有 strong/b 标签（原文粗体）
-  // 已在主循环中通过标签名直接判断，这里只处理 p 标签
-
-  // 规则2: 短段落（≤12字符）且不以对话引导符开头 → 标题
-  const sentenceEndings = /[。！？…，、》」』）\)]$/
-  if (text.length <= 12 && !sentenceEndings.test(text)) {
-    if (/^[\"\"''「『]/.test(text)) return 'text'
-    // 排除纯疑问句（如"要不要除掉无忌？"）
-    if (/^.{1,10}[？?]$/.test(text)) return 'text'
-    return 'heading'
-  }
-
-  // 规则3: 超短"XX曰/XX：/XX："格式 → 标题
-  if (/^.{1,6}[：:]\s*$/.test(text) && text.length <= 12) {
-    return 'heading'
-  }
-
-  return 'text'
 }
 
 function cleanHtml(str) {
